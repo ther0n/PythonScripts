@@ -1,6 +1,5 @@
 source: /home/theron/Music/Library
-#destination: /run/media/theron/IPOD/Music
-destination: /home/theron/Music/Test
+destination: /run/media/theron/IPOD/Music
 threads: 4
 formats:
   flac:
@@ -11,4 +10,7 @@ formats:
     command: cp $source $destination
   jpg:
     convert_to: jpg
+    command: cp $source $destination
+  png:
+    convert_to: png
     command: cp $source $destination
