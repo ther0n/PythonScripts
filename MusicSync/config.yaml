@@ -1,0 +1,12 @@
+source: /Users/theron/Music/test/source
+destination: /Users/theron/Music/test/dest
+formats:
+  flac:
+    convert_to: ogg
+    command: oggenc -q 8 $source -o $destination
+  mp3:
+    convert_to: mp3
+    command: cp $source $destination
+  jpg:
+    convert_to: jpg
+    command: cp $source $destination
