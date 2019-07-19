@@ -105,3 +105,6 @@ venv.bak/
 
 # mac crap
 .DS_Store
+
+# other
+.idea/

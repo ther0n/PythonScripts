@@ -1,5 +1,7 @@
-source: /Users/theron/Music/test/source
-destination: /Users/theron/Music/test/dest
+source: /home/theron/Music/Library
+#destination: /run/media/theron/IPOD/Music
+destination: /home/theron/Music/Test
+threads: 4
 formats:
   flac:
     convert_to: ogg

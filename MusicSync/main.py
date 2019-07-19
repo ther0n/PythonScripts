@@ -1,6 +1,8 @@
 import yaml
 import os
 import subprocess
+from multiprocessing import Pool
+from multiprocessing.dummy import Pool as ThreadPool
 
 
 class MusicSync:
@@ -68,17 +70,6 @@ class MusicSync:
                 all_files.append(full_path)
         return all_files
 
-    def sync(self):
-        """
-        Sync files from the configured source directory to the configured destination directory
-        :return: None
-        """
-        formats_list = self.get_formats_list()
-        for file in self.get_all_files(self.source):
-            if file.endswith(tuple(formats_list)):
-                self.convert(file)
-        self.clean(self.converted)
-
     def convert(self, source_file):
         """
         Convert a specified file based on options set in the config
@@ -86,22 +77,25 @@ class MusicSync:
         :param source_file: the file that should be converted
         :return: None
         """
-        source_format = os.path.splitext(source_file[len(self.source):])[1].replace('.', '')
-        destination_format = self.formats[source_format]['convert_to']
-        basename = os.path.splitext(source_file[len(self.source):])[0]
-        destination_file = str(self.destination + basename + '.' + destination_format)
-        if os.path.exists(destination_file):
-            print("Skipping file %s because it has been converted already" % source_file)
-        else:
-            print("Converting file: \n\tSource: %s \n\tDestination: %s" % (source_file, destination_file))
-            convert_command = self.formats[source_format]['command']
-            convert_command = convert_command.replace("$source", '"' + source_file + '"')
-            convert_command = convert_command.replace("$destination", '"' + destination_file + '"')
-            print("\t" + convert_command)
-            if not os.path.exists(os.path.dirname(destination_file)):
-                os.makedirs(os.path.dirname(destination_file))
-            subprocess.call(convert_command, shell=True)
-        self.add_converted(destination_file)
+        formats_list = self.get_formats_list()
+        if source_file.endswith(tuple(formats_list)):
+            source_format = os.path.splitext(source_file[len(self.source):])[1].replace('.', '')
+            destination_format = self.formats[source_format]['convert_to']
+            basename = os.path.splitext(source_file[len(self.source):])[0]
+            destination_file = str(self.destination + basename + '.' + destination_format)
+            if os.path.exists(destination_file):
+                print("Skipping file %s because it has been converted already" % source_file)
+            else:
+                print("Converting file: \n\tSource: %s \n\tDestination: %s" % (source_file, destination_file))
+                convert_command = self.formats[source_format]['command']
+                convert_command = convert_command.replace("$source", '"' + source_file + '"')
+                convert_command = convert_command.replace("$destination", '"' + destination_file + '"')
+                print("\t" + convert_command)
+                if not os.path.exists(os.path.dirname(destination_file)):
+                    os.makedirs(os.path.dirname(destination_file))
+                subprocess.call(convert_command, shell=True)
+            self.add_converted(destination_file)
+        return
 
     def clean(self, files_to_keep):
         """
@@ -134,6 +128,14 @@ class MusicSync:
         if len(files) == 0 and removeRoot:
             print("Removing empty directory: " + path)
             os.rmdir(path)
+
+    def sync(self):
+        """
+        Sync files from the configured source directory to the configured destination directory
+        :return: None
+        """
+        with ThreadPool(self.config['threads']) as pool:
+            pool.map(self.convert, self.get_all_files(self.source))
 
 
 if __name__ == '__main__':
